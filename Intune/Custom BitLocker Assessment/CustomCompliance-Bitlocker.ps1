@@ -35,4 +35,4 @@ foreach($volume in $btDataVolumes )
 }
 
 $hash=@{OsVolumeEncryptionStatus=$isOSDrivesFullyEncrypted; NonEncryptedOsVolumes=$nonEncryptedOsVolumesString;DataVolumeEncryptionStatus=$isDataDrivesFullyEncrypted; NonEncryptedDataVolumes=$nonEncryptedDataVolumesString}
-$hash |ConvertTo-Json -Compress
+return $hash |ConvertTo-Json -Compress
