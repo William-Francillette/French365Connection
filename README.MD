@@ -1,0 +1,1 @@
+This repository contains the scripts documented in my blog: https://french365connection.co.uk
