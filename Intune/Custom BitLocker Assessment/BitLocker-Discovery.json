@@ -1,0 +1,60 @@
+{
+    "Rules":[ 
+        { 
+           "SettingName":"OsVolumeEncryptionStatus",
+           "Operator":"IsEquals",
+           "DataType":"Boolean",
+           "Operand":true,
+           "MoreInfoUrl":"https://bing.com",
+           "RemediationStrings":[ 
+                { 
+                    "Language":"en_US",
+                    "Title":"Operating System volumes encryption status",
+                    "Description": "The Operating System volumes are not completely encrypted. Please verify the status of the Operating System volumes"
+                }
+           ]
+        },
+        { 
+           "SettingName":"NonEncryptedOsVolumes",
+           "Operator":"IsEquals",
+           "DataType":"String",
+           "Operand":"",
+           "MoreInfoUrl":"https://bing.com",
+           "RemediationStrings":[ 
+                { 
+                    "Language":"en_US",
+                    "Title":"Non encrypted Operating System volumes list",
+                    "Description": "The following Operating System Volumes are not completely encrypted: {ActualValue}."
+                }
+           ]
+        },
+        { 
+           "SettingName":"DataVolumeEncryptionStatus",
+           "Operator":"IsEquals",
+           "DataType":"Boolean",
+           "Operand":true,
+           "MoreInfoUrl":"https://bing.com",
+           "RemediationStrings":[ 
+                { 
+                    "Language":"en_US",
+                    "Title":"Data volumes encryption status",
+                    "Description": "The Data volumes are not completely encrypted. Please verify the status of the Data volumes"
+                }
+           ]
+        },
+        { 
+           "SettingName":"NonEncryptedDataVolumes",
+           "Operator":"IsEquals",
+           "DataType":"String",
+           "Operand":"",
+           "MoreInfoUrl":"https://bing.com",
+           "RemediationStrings":[ 
+                { 
+                    "Language":"en_US",
+                    "Title":"Non encrypted Data volumes list",
+                    "Description": "The following Data volumes are not completely encrypted: {ActualValue}."
+                }
+           ]
+        }
+    ]
+}
