@@ -153,7 +153,7 @@ function Get-RegistryKeySetting
     foreach ($setting in $Settings)
     {
         $value=Get-ItemProperty -Path $setting.Key -Name $setting.Subkey -ErrorAction SilentlyContinue
-        if($value -eq $setting.Value)
+        if($value.($setting.Subkey) -eq $setting.Value)
         {
             $setting.set=$true
         }
