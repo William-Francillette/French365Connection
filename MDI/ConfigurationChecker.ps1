@@ -64,49 +64,49 @@ $NTLMAuditingSchema=@(
 $advancedAuditingSchema=@(
     @{
         Name = "Audit Credential Validation"
-        Guid = Guid.Parse("0cce923f-69ae-11d9-bed3-505054503030")
+        Guid = [GUID]::Parse("0cce923f-69ae-11d9-bed3-505054503030")
         Value = 3
         Set = $false
     }
     @{
         Name = "Audit Distribution Group Managment"
-        Guid = [Guid]::Parse("0cce9238-69ae-11d9-bed3-505054503030")
+        Guid = [GUID]::Parse("0cce9238-69ae-11d9-bed3-505054503030")
         Value = 3
         Set = $false
     }
     @{
         Name = "Audit Computer Account Management"
-        Guid = [Guid]::Parse("0cce9236-69ae-11d9-bed3-505054503030")
+        Guid = [GUID]::Parse("0cce9236-69ae-11d9-bed3-505054503030")
         Value = 3
         Set = $false
     }
     @{
         Name = "Audit Security Group Management"
-        Guid = [Guid]::Parse("0cce9237-69ae-11d9-bed3-505054503030")
+        Guid = [GUID]::Parse("0cce9237-69ae-11d9-bed3-505054503030")
         Value = 3
         Set = $false
     }
     @{
         Name = "Audit User Account Management"
-        Guid = [Guid]::Parse("0cce9235-69ae-11d9-bed3-505054503030")
+        Guid = [GUID]::Parse("0cce9235-69ae-11d9-bed3-505054503030")
         Value = 3
         Set = $false
     }
     @{
         Name = "Audit Directory Service Access"
-        Guid = [Guid]::Parse("0cce923b-69ae-11d9-bed3-505054503030")
+        Guid = [GUID]::Parse("0cce923b-69ae-11d9-bed3-505054503030")
         Value = 3
         Set = $false
     }
     @{
         Name = "Audit Security System Extension"
-        Guid = [Guid]::Parse("0cce9211-69ae-11d9-bed3-505054503030")
+        Guid = [GUID]::Parse("0cce9211-69ae-11d9-bed3-505054503030")
         Value = 3
         Set = $false
     }
     @{
         Name = "Audit Directory Service Changes"
-        Guid = [Guid]::Parse("0cce923c-69ae-11d9-bed3-505054503030")
+        Guid = [GUID]::Parse("0cce923c-69ae-11d9-bed3-505054503030")
         Value = 3
         Set = $false
     }
@@ -152,7 +152,7 @@ function Get-RegistryKeySetting
 
     foreach ($setting in $Settings)
     {
-        $value=Get-ItemProperty -Path $setting.Key -Name $setting.Subkey
+        $value=Get-ItemProperty -Path $setting.Key -Name $setting.Subkey -ErrorAction SilentlyContinue
         if($value -eq $setting.Value)
         {
             $setting.set=$true
@@ -177,16 +177,21 @@ function Get-GroupPolicySetting
         $GroupPolicyName
     )
 
-    [XML]$gpo=Get-GPOReport -DisplayName $GroupPolicyName
+    [XML]$gpo=Get-GPOReport -DisplayName $GroupPolicyName -ReportType Xml -ErrorAction SilentlyContinue
     $auditSettings=$gpo.GPO.Computer.ExtensionData.Extension.AuditSetting
-    foreach ($setting in $Settings)
+
+    if($null -ne $auditSettings)
     {
-        $value=$auditSettings|Where-Object -FilterScript {[guid]($_.SubcategoryGuid) -eq $setting.Guid}
-        if($null -ne $value -and $value.SettingValue -eq $setting.Value)
+        foreach ($setting in $Settings)
         {
-            $setting.set=$true
+            $value=$auditSettings|Where-Object -FilterScript {$null -ne $_.SubcategoryGuid -and [guid]($_.SubcategoryGuid) -eq $setting.Guid}
+            if($null -ne $value -and $value.SettingValue -eq $setting.Value)
+            {
+                $setting.set=$true
+            }
         }
     }
+    
 
     return $Settings
 }
@@ -238,24 +243,26 @@ function Get-ADFSAuditingSetting
     }
 
     $domainDN=(Get-ADDomain).DistinguishedName
-    $auditRights=(Get-ACL -Path "AD:\CN=ADFS,CN=Microsoft,CN=Program Data,$domainDN" -Audit).Audit
-
-    $value=$auditRights|Where-Object -FilterScript { `
-        $_.IdentityReference.toString() -eq "Everyone" -and `
-        $_.ActiveDirectoryRights.toString().Contains("ReadProperty") -and `
-        $_.ActiveDirectoryRights.toString().Contains("WriteProperty") -and `
-        $_.InheritanceType.toString() -eq "All" -and `
-        $_.InheritedObjectType.toString() -eq "00000000-0000-0000-0000-000000000000" `
-    }
-    if($null -ne $value)
+    $auditRights=(Get-ACL -Path "AD:\CN=ADFS,CN=Microsoft,CN=Program Data,$domainDN" -Audit -ErrorAction SilentlyContinue).Audit
+    if($null -ne $auditRights)
     {
-        $setting.Set=$true
+        $value=$auditRights|Where-Object -FilterScript { `
+            $_.IdentityReference.toString() -eq "Everyone" -and `
+            $_.ActiveDirectoryRights.toString().Contains("ReadProperty") -and `
+            $_.ActiveDirectoryRights.toString().Contains("WriteProperty") -and `
+            $_.InheritanceType.toString() -eq "All" -and `
+            $_.InheritedObjectType.toString() -eq "00000000-0000-0000-0000-000000000000" `
+        }
+        if($null -ne $value)
+        {
+            $setting.Set=$true
+        }
     }
     
     return $setting
 }
 
-function Get-ADFSAuditingSetting
+function Get-ExchangeAuditingSetting
 {
     [CmdletBinding()]
     param
@@ -270,17 +277,20 @@ function Get-ADFSAuditingSetting
     $domainDN=(Get-ADDomain).DistinguishedName
     $auditRights=(Get-ACL -Path "AD:\CN=Configuration,$domainDN" -Audit).Audit
 
-    $value=$auditRights|Where-Object -FilterScript { `
-        $_.IdentityReference.toString() -eq "Everyone" -and `
-        $_.ActiveDirectoryRights.toString().Contains("WriteProperty") -and `
-        $_.InheritanceType.toString() -eq "All" -and `
-        $_.InheritedObjectType.toString() -eq "00000000-0000-0000-0000-000000000000" `
-    }
-    if($null -ne $value)
+    if($null -ne $auditRights)
     {
-        $setting.Set=$true
+        $value=$auditRights|Where-Object -FilterScript { `
+            $_.IdentityReference.toString() -eq "Everyone" -and `
+            $_.ActiveDirectoryRights.toString().Contains("WriteProperty") -and `
+            $_.InheritanceType.toString() -eq "All" -and `
+            $_.InheritedObjectType.toString() -eq "00000000-0000-0000-0000-000000000000" `
+        }
+        if($null -ne $value)
+        {
+            $setting.Set=$true
+        }
     }
-    
+
     return $setting
 }
 
@@ -299,29 +309,33 @@ function Get-SettingToString
         $Settings
     )
 
-    $result=[StringBuilder]::New()
+    $result=[System.Text.StringBuilder]::New()
 
-    $result.Append("$SettingName`: [") | Out-Null
-    if($Settings.Set.Contains($false))
+    $result.Append("[") | Out-Null
+    $isFeatureConfigured= ([Array]($Settings | Where-Object -FilterScript {-Not $_.Set})).count -eq 0
+    if($isFeatureConfigured)
     {
-        $result.Append(" ]`r`n") | Out-Null
+        $result.Append("X") | Out-Null
     }
     else
     {
-        $result.Append("X]`r`n") | Out-Null
+        $result.Append(" ") | Out-Null
     }
+    $result.Append("] $SettingName`r`n") | Out-Null
+
 
     foreach($setting in $settings)
     {
-        $result.Append("    $setting.Name`: [") | Out-Null
+        $result.Append("    [") | Out-Null
         if($setting.Set)
         {
-            $result.Append("X]`r`n") | Out-Null
+            $result.Append("X") | Out-Null
         }
         else
         {
-            $result.Append(" ]`r`n") | Out-Null
+            $result.Append(" ") | Out-Null
         }
+        $result.Append("] $($setting.Name)`r`n") | Out-Null
     }
 
     return $result.toString()
@@ -329,7 +343,7 @@ function Get-SettingToString
 
 $LDAPAuditingSchema = Get-RegistryKeySetting -Settings $LDAPAuditingSchema
 $NTLMAuditingSchema = Get-RegistryKeySetting -Settings $NTLMAuditingSchema 
-$advancedAuditingSchema = Get-GroupPolicySetting -Settings $advancedAuditingSchema
+$advancedAuditingSchema = Get-GroupPolicySetting -Settings $advancedAuditingSchema -GroupPolicyName $AdvancedAuditGroupPolicyName
 $objectAuditingSchema = Get-ObjectAuditingSetting -Settings $objectAuditingSchema
 $ADFSAuditingSchema = Get-ADFSAuditingSetting
 $exchangeAuditingSchema = Get-ExchangeAuditingSetting
