@@ -7,12 +7,18 @@ param
 
     [Parameter()]
     [System.String]
-    $FileName="report_$((Get-Date).toString("yyyyMMdd")).json"
+    $FileName="report_$((Get-Date).toString("yyyyMMdd")).json",
+
+    [Parameter()]
+    [System.String]
+    $ApplicationId='14d82eec-204b-4c2f-b7e8-296a70dab67e'
+
+
 )
 
 Connect-MgGraph -Scopes Application.Read.All, Directory.Read.All, DelegatedPermissionGrant.ReadWrite.All, User.Read
 
-$graphSDK = Get-MgServicePrincipal -filter "appid eq '14d82eec-204b-4c2f-b7e8-296a70dab67e'"
+$graphSDK = Get-MgServicePrincipal -filter "appid eq '$ApplicationId'"
 
 $userConsents = Get-MgServicePrincipalOauth2PermissionGrant -ServicePrincipalId $graphSDK.id | Where-Object -FilterScript {$_.ConsentType -eq 'principal'}
 $adminConsents = Get-MgServicePrincipalOauth2PermissionGrant -ServicePrincipalId $graphSDK.id | Where-Object -FilterScript {$_.ConsentType -eq 'allPrincipals'}
