@@ -10,10 +10,8 @@ variables:
   rgName: 'F365C'
   location: 'uksouth'
   templateFile: 'CA Monitoring/Bicep/main.bicep'
-  subscriptionid: 'YOUR-SUBSCRIPTION-ID'
-  azureserviceconnection: 'azure subs'
-  vmAdminUser: ''
-  vmAdminPasssword: ''
+  azureserviceconnection: 'F365-ServiceConnection'
+  subscriptionid: '9bcfadfd-8b9a-407b-974c-de3b4e51ee91'
   kvname: 'CAMonitoring-Keyvault'
 
 
