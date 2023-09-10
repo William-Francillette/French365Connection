@@ -29,6 +29,7 @@ steps:
   displayName: Deploy VM Bicep
   inputs:
     deploymentScope: 'Resource Group'
+    deploymentMode: 'Incremental'
     azureResourceManagerConnection: '$(azureserviceconnection)'
     subscriptionId: '$(subscriptionid)'
     action: 'Create Or Update Resource Group'
@@ -37,6 +38,5 @@ steps:
     templateLocation: 'Linked artifact'
     csmFile: '$(templateFile)'
     overrideParameters: '-adminUsername 'adminPipeline' -adminPassword $(adminPassword)'
-    deploymentMode: 'Incremental'
     # deploymentOutputs: 'asp-json'
     
