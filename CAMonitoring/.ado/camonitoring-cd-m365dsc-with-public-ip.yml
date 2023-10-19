@@ -8,7 +8,6 @@ trigger:
 
 variables:
 - group: "CA Monitoring - Variables"
-- group: "CA Monitoring - Keyvault"
 - name: location 
   value: 'uksouth'
 - name: rgTemplateFile
